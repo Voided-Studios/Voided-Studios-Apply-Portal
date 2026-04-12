@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Voided Studios Apply Portal</title>
+
+<style>
+body{
+margin:0;
+font-family:monospace;
+background:#0b0b10;
+color:white;
+}
+
+header{
+padding:15px;
+border-bottom:1px solid #222;
+}
+
+.container{
+display:grid;
+grid-template-columns:1fr 340px;
+height:calc(100vh - 60px);
+}
+
+.left{
+padding:20px;
+overflow-y:auto;
+}
+
+.card{
+background:#111;
+padding:15px;
+border-radius:10px;
+}
+
+input,select,textarea{
+width:100%;
+padding:10px;
+margin:6px 0;
+background:#050507;
+border:1px solid #333;
+color:white;
+border-radius:6px;
+font-family:monospace;
+}
+
+textarea{
+height:120px;
+resize:none;
+}
+
+button{
+background:#7c3aed;
+border:none;
+padding:10px 14px;
+border-radius:6px;
+color:white;
+cursor:pointer;
+margin:5px 0;
+}
+
+.right{
+border-left:1px solid #222;
+padding:15px;
+overflow-y:auto;
+}
+
+.app{
+background:#0f0f14;
+border:1px solid #222;
+padding:10px;
+border-radius:8px;
+margin-bottom:10px;
+}
+
+.small{
+font-size:12px;
+color:#888;
+}
+
+.row{
+margin:4px 0;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>Voided Studios Application Portal</h2>
+</header>
+
+<div class="container">
+
+<!-- LEFT FORM -->
+<div class="left">
+
+<div class="card">
+<h3>Apply to Voided Studios</h3>
+
+<input id="roblox" placeholder="Roblox Username">
+<input id="realname" placeholder="Real Name">
+<input id="discord" placeholder="Discord Username">
+<input id="xname" placeholder="X Username (Twitter)">
+<input id="email" placeholder="Email Address">
+
+<select id="role">
+<option>Artist</option>
+<option>Lead Artist</option>
+<option>Developer</option>
+<option>Lead Developer</option>
+<option>Trial Developer</option>
+<option>Scripter</option>
+<option>UI Developer</option>
+<option>Map Developer</option>
+<option>Contributor</option>
+<option>Moderator</option>
+<option>Administrator</option>
+<option>Development Director</option>
+</select>
+
+<textarea id="reason" placeholder="Why do you want to join Voided Studios?"></textarea>
+
+<textarea id="extra" placeholder="What can you bring to the team?"></textarea>
+
+<button onclick="submitApp()">Submit Application</button>
+
+</div>
+
+</div>
+
+<!-- RIGHT ADMIN -->
+<div class="right">
+
+<h3>Admin Panel</h3>
+
+<input id="pass" type="password" placeholder="Admin Password">
+<button onclick="login()">Login</button>
+
+<div id="apps"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const PASSWORD = "VoidedStudios.Agent";
+let loggedIn = false;
+
+let apps = JSON.parse(localStorage.getItem("voided_apps_final") || "[]");
+
+function save(){
+localStorage.setItem("voided_apps_final", JSON.stringify(apps));
+render();
+}
+
+function submitApp(){
+
+const app = {
+roblox: roblox.value,
+realname: realname.value,
+discord: discord.value,
+x: xname.value,
+email: email.value,
+role: role.value,
+reason: reason.value,
+extra: extra.value,
+time:new Date().toLocaleString(),
+status:"Pending"
+};
+
+if(!app.roblox || !app.email || !app.reason){
+alert("Fill required fields");
+return;
+}
+
+apps.unshift(app);
+save();
+
+alert("Application submitted!");
+}
+
+function login(){
+if(pass.value === PASSWORD){
+loggedIn = true;
+render();
+}else{
+alert("Incorrect password");
+}
+}
+
+function sendEmail(app, status){
+
+const subject = `Voided Studios Application - ${status}`;
+const body =
+`Hello ${app.realname},
+
+After reviewing your application, we have ${status.toUpperCase()} it.
+
+Role: ${app.role}
+
+Thank you for applying to Voided Studios!
+- Voided Studios Application Team`;
+
+window.location.href =
+`mailto:${app.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function setStatus(i, status){
+
+apps[i].status = status;
+save();
+
+sendEmail(apps[i], status);
+}
+
+function render(){
+
+if(!loggedIn){
+appsDiv.innerHTML = "<p class='small'>Admin locked.</p>";
+return;
+}
+
+if(apps.length === 0){
+appsDiv.innerHTML = "<p>No applications yet.</p>";
+return;
+}
+
+appsDiv.innerHTML = apps.map((a,i)=>`
+<div class="app">
+<div class="row"><b>${a.roblox}</b> (${a.realname})</div>
+<div class="row">Role: ${a.role}</div>
+<div class="row">Discord: ${a.discord}</div>
+<div class="row">X: ${a.x}</div>
+<div class="row">${a.email}</div>
+<div class="row">${a.reason}</div>
+<div class="row small">${a.time}</div>
+<div class="row"><b>Status:</b> ${a.status}</div>
+
+<button onclick="setStatus(${i},'accepted')">Accept</button>
+<button onclick="setStatus(${i},'declined')">Decline</button>
+</div>
+`).join("");
+
+}
+
+const appsDiv = document.getElementById("apps");
+
+render();
+
+</script>
+
+</body>
+</html>
