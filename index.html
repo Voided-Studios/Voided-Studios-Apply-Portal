@@ -68,7 +68,7 @@ resize:none;
 button{
 background:#7c3aed;
 border:none;
-padding:10px 14px;
+padding:10px;
 border-radius:6px;
 color:white;
 cursor:pointer;
@@ -96,7 +96,7 @@ margin-bottom:10px;
 
 <div class="container">
 
-<!-- LEFT FORM -->
+<!-- LEFT -->
 <div class="left">
 <div class="card">
 
@@ -105,10 +105,10 @@ margin-bottom:10px;
 <input id="roblox" placeholder="Roblox Username">
 <input id="realname" placeholder="Real Name">
 <input id="discord" placeholder="Discord Username">
-<input id="xname" placeholder="X Username (Twitter)">
+<input id="xname" placeholder="X Username">
 <input id="email" placeholder="Email Address">
 
-<!-- YOUR REQUIRED ROLE SYSTEM -->
+<!-- FULL ROLE LIST -->
 <select id="role">
 
 <!-- CORE ENGINEERING -->
@@ -168,7 +168,7 @@ margin-bottom:10px;
 <option>Concept Artist</option>
 <option>Graphic Designer</option>
 
-<!-- DESIGN / GAME DESIGN -->
+<!-- DESIGN -->
 <option>Level Designer</option>
 <option>Game Designer</option>
 <option>World Builder</option>
@@ -193,7 +193,7 @@ margin-bottom:10px;
 <option>Support Agent</option>
 <option>Community Manager</option>
 
-<!-- LEADERSHIP / MANAGEMENT -->
+<!-- LEADERSHIP -->
 <option>Team Lead Developer</option>
 <option>Lead Programmer</option>
 <option>Lead Designer</option>
@@ -234,7 +234,7 @@ margin-bottom:10px;
 </div>
 </div>
 
-<!-- ADMIN -->
+<!-- RIGHT -->
 <div class="right">
 
 <h3>Admin Panel</h3>
@@ -286,20 +286,6 @@ apps = snap.docs.map(d => ({id:d.id, ...d.data()}));
 render();
 });
 
-/* AI BACKEND */
-async function getAITag(data){
-try{
-const res = await fetch("https://voided-studios-apply-portal.onrender.com/analyze", {
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify(data)
-});
-return await res.json();
-}catch{
-return {tag:"Needs Review", score:5};
-}
-}
-
 /* SUBMIT */
 async function submitApp(){
 
@@ -316,18 +302,9 @@ time: new Date().toLocaleString(),
 status:"Pending"
 };
 
-if(!data.roblox || !data.email || !data.reason){
-alert("Fill required fields");
-return;
-}
+await addDoc(colRef, data);
 
-const ai = await getAITag(data);
-data.aiTag = ai.tag;
-data.aiScore = ai.score;
-
-await addDoc(colRef,data);
-
-alert("Application submitted!");
+alert("Submitted!");
 }
 
 /* LOGIN */
@@ -336,27 +313,24 @@ if(pass.value === PASSWORD){
 loggedIn = true;
 render();
 }else{
-alert("Incorrect password");
+alert("Wrong password");
 }
 }
 
 /* EMAIL */
-function sendEmail(appData,status){
+async function sendEmail(appData,status){
 
-const subject = `Voided Studios Application - ${status}`;
+await fetch("https://voided-studios-apply-portal.onrender.com/send-email", {
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify({
+email: appData.email,
+name: appData.realname,
+role: appData.role,
+status: status
+})
+});
 
-const body =
-`Hello ${appData.realname},
-
-After reviewing your application, we have ${status.toUpperCase()} it.
-
-Role: ${appData.role}
-
-Thank you!
-- Voided Studios Team`;
-
-window.location.href =
-`mailto:${appData.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 /* STATUS */
@@ -370,7 +344,7 @@ sendEmail(a,status);
 function render(){
 
 if(!loggedIn){
-appsDiv.innerHTML="<p class='small'>Admin locked</p>";
+appsDiv.innerHTML = "<p class='small'>Admin locked</p>";
 return;
 }
 
@@ -378,7 +352,6 @@ appsDiv.innerHTML = apps.map((a,i)=>`
 <div class="app">
 <div><b>${a.roblox}</b> (${a.realname})</div>
 <div>Role: ${a.role}</div>
-<div class="small">AI: ${a.aiTag} (${a.aiScore})</div>
 <div>Status: ${a.status}</div>
 
 <button onclick="setStatus(${i},'accepted')">Accept</button>
@@ -387,9 +360,11 @@ appsDiv.innerHTML = apps.map((a,i)=>`
 `).join("");
 }
 
-window.submitApp=submitApp;
-window.login=login;
-window.setStatus=setStatus;
+/* GLOBAL FIX */
+window.login = login;
+window.render = render;
+window.setStatus = setStatus;
+window.submitApp = submitApp;
 
 </script>
 
