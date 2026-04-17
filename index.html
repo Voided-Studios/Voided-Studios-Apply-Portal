@@ -43,7 +43,10 @@ border-radius:6px;
 font-family:monospace;
 }
 
-textarea{height:120px;resize:none;}
+textarea{
+height:120px;
+resize:none;
+}
 
 button{
 background:#7c3aed;
@@ -64,7 +67,6 @@ margin-bottom:10px;
 }
 
 .small{font-size:12px;color:#888;}
-.row{margin:4px 0;}
 </style>
 </head>
 
@@ -74,81 +76,120 @@ margin-bottom:10px;
 <h2>Voided Studios Application Portal</h2>
 </header>
 
-<div class="container">
-
-<!-- FORM -->
-<div class="left">
-<div class="card">
-
-<h3>Apply to Voided Studios</h3>
-
-<input id="roblox" placeholder="Roblox Username">
-<input id="realname" placeholder="Real Name">
-<input id="discord" placeholder="Discord Username">
-<input id="xname" placeholder="X Username (Twitter)">
-<input id="email" placeholder="Email Address">
-
 <select id="role">
 
+<!-- CORE ENGINEERING -->
 <option>Frontend Developer</option>
 <option>Backend Developer</option>
 <option>Full Stack Developer</option>
+<option>Software Engineer</option>
 <option>Game Developer</option>
 <option>Gameplay Programmer</option>
 <option>Systems Programmer</option>
 <option>Tools Programmer</option>
+<option>Engine Programmer</option>
+<option>Graphics Programmer</option>
 <option>AI Engineer</option>
+<option>Machine Learning Engineer</option>
 <option>DevOps Engineer</option>
-<option>Network Engineer</option>
-<option>Security Engineer</option>
-<option>Database Engineer</option>
+<option>Site Reliability Engineer</option>
+<option>Cloud Engineer</option>
 <option>Infrastructure Engineer</option>
+<option>Security Engineer</option>
+<option>Network Engineer</option>
+<option>Database Engineer</option>
+<option>Performance Engineer</option>
+<option>Automation Engineer</option>
 
+<!-- ROBLOX DEVELOPMENT -->
 <option>Roblox Scripter</option>
 <option>Roblox Gameplay Developer</option>
 <option>Roblox Systems Engineer</option>
-<option>Roblox UI Scripter</option>
+<option>Roblox UI Engineer</option>
 <option>Roblox Optimization Engineer</option>
+<option>Roblox Physics Developer</option>
+<option>Roblox Combat Systems Developer</option>
+<option>Roblox Networking Developer</option>
 
-<option>UI/UX Designer</option>
+<!-- UI / UX -->
 <option>UI Developer</option>
+<option>UI Engineer</option>
+<option>UX Engineer</option>
+<option>UI/UX Designer</option>
+<option>Design Systems Engineer</option>
+
+<!-- ART / VISUAL -->
 <option>2D Artist</option>
 <option>3D Modeler</option>
 <option>3D Environment Artist</option>
 <option>Character Artist</option>
+<option>Prop Artist</option>
+<option>Hard Surface Modeler</option>
+<option>Texture Artist</option>
+<option>Material Artist</option>
+<option>Lighting Artist</option>
 <option>Technical Artist</option>
 <option>Animator</option>
+<option>Rigging Artist</option>
 <option>VFX Artist</option>
 <option>Concept Artist</option>
 <option>Graphic Designer</option>
 
+<!-- DESIGN / GAME DESIGN -->
 <option>Level Designer</option>
-<option>Map Developer</option>
+<option>Game Designer</option>
 <option>World Builder</option>
 <option>Environment Designer</option>
+<option>Mission Designer</option>
+<option>System Designer</option>
+<option>Economy Designer</option>
 
+<!-- AUDIO -->
 <option>Sound Designer</option>
 <option>Music Composer</option>
 <option>Audio Engineer</option>
+<option>Audio Programmer</option>
 
+<!-- QA / COMMUNITY -->
 <option>QA Tester</option>
+<option>QA Automation Tester</option>
 <option>Bug Tester</option>
+<option>Playtester</option>
 <option>Community Moderator</option>
 <option>Discord Moderator</option>
-<option>Support Team</option>
+<option>Support Agent</option>
+<option>Community Manager</option>
 
-<option>Project Manager</option>
-<option>Product Manager</option>
+<!-- LEADERSHIP / MANAGEMENT -->
 <option>Team Lead Developer</option>
 <option>Lead Programmer</option>
+<option>Lead Designer</option>
 <option>Lead Artist</option>
+<option>Technical Director</option>
+<option>Creative Director</option>
 <option>Development Director</option>
 <option>Executive Development Director</option>
+<option>Project Manager</option>
+<option>Product Manager</option>
+<option>Studio Manager</option>
+<option>Engineering Manager</option>
+<option>Operations Manager</option>
+<option>Head of Development</option>
+<option>Head of Engineering</option>
+<option>Head of Design</option>
 
-<option>Contributor</option>
+<!-- EXECUTIVE -->
+<option>Chief Executive Officer (CEO)</option>
+<option>Chief Operating Officer (COO)</option>
+<option>Chief Technical Officer (CTO)</option>
+
+<!-- OTHER -->
 <option>Intern Developer</option>
-<option>Trial Developer</option>
+<option>Junior Developer</option>
+<option>Senior Developer</option>
 <option>Freelancer</option>
+<option>Contributor</option>
+<option>Research Developer</option>
 
 </select>
 
@@ -266,37 +307,45 @@ alert("Incorrect password");
 }
 }
 
-/* EMAIL */
-function sendEmail(app,status){
+/* FIXED EMAIL (THIS IS THE IMPORTANT PART) */
+function sendEmail(appData, status){
 
 const subject = `Voided Studios Application - ${status}`;
 
 const body =
-`Hello ${app.realname},
+`Hello ${appData.realname},
 
 After reviewing your application, we have ${status.toUpperCase()} it.
 
-Role: ${app.role}
+Role: ${appData.role}
 
 Thank you!
 - Voided Studios Team`;
 
+/* IMPORTANT: direct user action trigger */
 window.location.href =
-`mailto:${app.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+`mailto:${appData.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-/* STATUS */
-async function setStatus(i,status){
+/* STATUS CHANGE (FIXED EMAIL TRIGGER) */
+async function setStatus(i, status){
+
 const a = apps[i];
-await updateDoc(doc(db,"applications",a.id),{status});
+
+await updateDoc(doc(db,"applications",a.id), {status});
+
+/* delay prevents browser blocking mailto */
+setTimeout(()=>{
 sendEmail(a,status);
+},50);
+
 }
 
 /* RENDER */
 function render(){
 
 if(!loggedIn){
-appsDiv.innerHTML="<p class='small'>Admin locked</p>";
+appsDiv.innerHTML = "<p class='small'>Admin locked</p>";
 return;
 }
 
@@ -313,9 +362,9 @@ appsDiv.innerHTML = apps.map((a,i)=>`
 `).join("");
 }
 
-window.submitApp=submitApp;
-window.login=login;
-window.setStatus=setStatus;
+window.submitApp = submitApp;
+window.login = login;
+window.setStatus = setStatus;
 
 </script>
 
