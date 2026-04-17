@@ -74,14 +74,8 @@ border-radius:8px;
 margin-bottom:10px;
 }
 
-.small{
-font-size:12px;
-color:#888;
-}
-
-.row{
-margin:4px 0;
-}
+.small{font-size:12px;color:#888;}
+.row{margin:4px 0;}
 </style>
 </head>
 
@@ -93,9 +87,7 @@ margin:4px 0;
 
 <div class="container">
 
-<!-- LEFT FORM -->
 <div class="left">
-
 <div class="card">
 <h3>Apply to Voided Studios</h3>
 
@@ -106,61 +98,103 @@ margin:4px 0;
 <input id="email" placeholder="Email Address">
 
 <select id="role">
+
+<option>Frontend Developer</option>
+<option>Backend Developer</option>
+<option>Full Stack Developer</option>
+<option>Game Developer</option>
+<option>Roblox Scripter</option>
+<option>UI/UX Developer</option>
+<option>Systems Programmer</option>
+<option>Tools Programmer</option>
+<option>Gameplay Programmer</option>
+<option>AI Engineer</option>
+<option>DevOps Engineer</option>
+<option>Network Engineer</option>
+<option>Security Engineer</option>
+<option>QA Tester</option>
+<option>Technical Artist</option>
+
+<option>Lead Developer</option>
+<option>Senior Developer</option>
+<option>Junior Developer</option>
+<option>Trial Developer</option>
+
+<option>Map Developer</option>
+<option>Modeler</option>
 <option>Artist</option>
 <option>Lead Artist</option>
-<option>Developer</option>
-<option>Lead Developer</option>
-<option>Trial Developer</option>
-<option>Scripter</option>
-<option>UI Developer</option>
-<option>Map Developer</option>
-<option>Contributor</option>
+
 <option>Moderator</option>
 <option>Administrator</option>
-<option>Modeler</option>
+<option>Contributor</option>
+
 <option>Development Director</option>
 <option>Executive Development Director</option>
+
 </select>
 
 <textarea id="reason" placeholder="Why do you want to join Voided Studios?"></textarea>
-
 <textarea id="extra" placeholder="What can you bring to the team?"></textarea>
 
 <button onclick="submitApp()">Submit Application</button>
-
+</div>
 </div>
 
-</div>
-
-<!-- RIGHT ADMIN -->
 <div class="right">
-
 <h3>Admin Panel</h3>
 
 <input id="pass" type="password" placeholder="Admin Password">
 <button onclick="login()">Login</button>
 
 <div id="apps"></div>
-
 </div>
 
 </div>
 
-<script>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
+updateDoc,
+doc,
+onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+/* 🔥 PUT YOUR FIREBASE CONFIG HERE */
+const firebaseConfig = {
+apiKey: "AIzaSyCic_ne2ZWsYZeTFX-2fJPCcFXJlqzLEW4",
+authDomain: "voided-studios-apply-portal.firebaseapp.com",
+projectId: "voided-studios-apply-portal",
+storageBucket: "voided-studios-apply-portal.firebasestorage.app",
+messagingSenderId: "385790292991",
+appId: "1:385790292991:web:a4a10cb5781c107151adca"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const colRef = collection(db, "applications");
 
 const PASSWORD = "VoidedStudios.Agent";
 let loggedIn = false;
+let apps = [];
 
-let apps = JSON.parse(localStorage.getItem("voided_apps_final") || "[]");
+const appsDiv = document.getElementById("apps");
 
-function save(){
-localStorage.setItem("voided_apps_final", JSON.stringify(apps));
+async function loadApps(){
+onSnapshot(colRef, (snapshot)=>{
+apps = snapshot.docs.map(d => ({id:d.id, ...d.data()}));
 render();
+});
 }
 
-function submitApp(){
+async function submitApp(){
 
-const app = {
+const data = {
 roblox: roblox.value,
 realname: realname.value,
 discord: discord.value,
@@ -169,17 +203,16 @@ email: email.value,
 role: role.value,
 reason: reason.value,
 extra: extra.value,
-time:new Date().toLocaleString(),
-status:"Pending"
+time: new Date().toLocaleString(),
+status: "Pending"
 };
 
-if(!app.roblox || !app.email || !app.reason){
+if(!data.roblox || !data.email || !data.reason){
 alert("Fill required fields");
 return;
 }
 
-apps.unshift(app);
-save();
+await addDoc(colRef, data);
 
 alert("Application submitted!");
 }
@@ -203,19 +236,21 @@ After reviewing your application, we have ${status.toUpperCase()} it.
 
 Role: ${app.role}
 
-Thank you for applying to Voided Studios!
-- Voided Studios Application Team`;
+Thank you for applying!
+- Voided Studios`;
 
 window.location.href =
 `mailto:${app.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-function setStatus(i, status){
+async function setStatus(i, status){
 
-apps[i].status = status;
-save();
+const appData = apps[i];
+const ref = doc(db, "applications", appData.id);
 
-sendEmail(apps[i], status);
+await updateDoc(ref, { status });
+
+sendEmail(appData, status);
 }
 
 function render(){
@@ -245,12 +280,12 @@ appsDiv.innerHTML = apps.map((a,i)=>`
 <button onclick="setStatus(${i},'declined')">Decline</button>
 </div>
 `).join("");
-
 }
 
-const appsDiv = document.getElementById("apps");
-
-render();
+loadApps();
+window.submitApp = submitApp;
+window.login = login;
+window.setStatus = setStatus;
 
 </script>
 
