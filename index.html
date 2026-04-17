@@ -87,8 +87,10 @@ margin-bottom:10px;
 
 <div class="container">
 
+<!-- FORM -->
 <div class="left">
 <div class="card">
+
 <h3>Apply to Voided Studios</h3>
 
 <input id="roblox" placeholder="Roblox Username">
@@ -98,7 +100,6 @@ margin-bottom:10px;
 <input id="email" placeholder="Email Address">
 
 <select id="role">
-
 <option>Frontend Developer</option>
 <option>Backend Developer</option>
 <option>Full Stack Developer</option>
@@ -118,36 +119,35 @@ margin-bottom:10px;
 <option>Lead Developer</option>
 <option>Senior Developer</option>
 <option>Junior Developer</option>
-<option>Trial Developer</option>
 
-<option>Map Developer</option>
-<option>Modeler</option>
 <option>Artist</option>
-<option>Lead Artist</option>
+<option>Modeler</option>
+<option>Map Developer</option>
 
 <option>Moderator</option>
 <option>Administrator</option>
-<option>Contributor</option>
 
 <option>Development Director</option>
-<option>Executive Development Director</option>
-
 </select>
 
 <textarea id="reason" placeholder="Why do you want to join Voided Studios?"></textarea>
 <textarea id="extra" placeholder="What can you bring to the team?"></textarea>
 
 <button onclick="submitApp()">Submit Application</button>
+
 </div>
 </div>
 
+<!-- ADMIN -->
 <div class="right">
+
 <h3>Admin Panel</h3>
 
 <input id="pass" type="password" placeholder="Admin Password">
 <button onclick="login()">Login</button>
 
 <div id="apps"></div>
+
 </div>
 
 </div>
@@ -159,13 +159,12 @@ import {
 getFirestore,
 collection,
 addDoc,
-getDocs,
+onSnapshot,
 updateDoc,
-doc,
-onSnapshot
+doc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* 🔥 PUT YOUR FIREBASE CONFIG HERE */
+/* 🔥 YOUR FIREBASE CONFIG */
 const firebaseConfig = {
 apiKey: "AIzaSyCic_ne2ZWsYZeTFX-2fJPCcFXJlqzLEW4",
 authDomain: "voided-studios-apply-portal.firebaseapp.com",
@@ -185,13 +184,13 @@ let apps = [];
 
 const appsDiv = document.getElementById("apps");
 
-async function loadApps(){
-onSnapshot(colRef, (snapshot)=>{
-apps = snapshot.docs.map(d => ({id:d.id, ...d.data()}));
+/* LOAD LIVE DATA */
+onSnapshot(colRef, (snap)=>{
+apps = snap.docs.map(d => ({id:d.id, ...d.data()}));
 render();
 });
-}
 
+/* SUBMIT */
 async function submitApp(){
 
 const data = {
@@ -217,6 +216,7 @@ await addDoc(colRef, data);
 alert("Application submitted!");
 }
 
+/* LOGIN */
 function login(){
 if(pass.value === PASSWORD){
 loggedIn = true;
@@ -226,9 +226,11 @@ alert("Incorrect password");
 }
 }
 
+/* EMAIL SYSTEM (RESTORED) */
 function sendEmail(app, status){
 
 const subject = `Voided Studios Application - ${status}`;
+
 const body =
 `Hello ${app.realname},
 
@@ -236,13 +238,14 @@ After reviewing your application, we have ${status.toUpperCase()} it.
 
 Role: ${app.role}
 
-Thank you for applying!
-- Voided Studios`;
+Thank you for applying to Voided Studios!
+- Voided Studios Application Team`;
 
 window.location.href =
 `mailto:${app.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
+/* STATUS CHANGE */
 async function setStatus(i, status){
 
 const appData = apps[i];
@@ -253,6 +256,7 @@ await updateDoc(ref, { status });
 sendEmail(appData, status);
 }
 
+/* RENDER */
 function render(){
 
 if(!loggedIn){
@@ -267,22 +271,25 @@ return;
 
 appsDiv.innerHTML = apps.map((a,i)=>`
 <div class="app">
+
 <div class="row"><b>${a.roblox}</b> (${a.realname})</div>
 <div class="row">Role: ${a.role}</div>
 <div class="row">Discord: ${a.discord}</div>
 <div class="row">X: ${a.x}</div>
 <div class="row">${a.email}</div>
+
 <div class="row">${a.reason}</div>
 <div class="row small">${a.time}</div>
+
 <div class="row"><b>Status:</b> ${a.status}</div>
 
 <button onclick="setStatus(${i},'accepted')">Accept</button>
 <button onclick="setStatus(${i},'declined')">Decline</button>
+
 </div>
 `).join("");
 }
 
-loadApps();
 window.submitApp = submitApp;
 window.login = login;
 window.setStatus = setStatus;
