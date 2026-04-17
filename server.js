@@ -7,14 +7,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔑 Resend API KEY from Render ENV
+// 🔑 Resend API key (Render ENV)
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /* =========================
    HEALTH CHECK
 ========================= */
 app.get("/", (req, res) => {
-res.send("Voided Studios backend is running.");
+res.json({
+status: "online",
+message: "Voided Studios Email Backend Running",
+endpoints: ["/send-email"]
+});
 });
 
 /* =========================
@@ -27,20 +31,48 @@ if (!email || !name || !role || !status) {
 return res.json({ success: false, error: "Missing fields" });
 }
 
+// color logic
+const isAccepted = status === "accepted";
+const color = isAccepted ? "#00ff88" : "#ff3b3b";
+const title = isAccepted ? "ACCEPTED" : "DECLINED";
+
 try {
 const response = await resend.emails.send({
 from: "Voided Studios <onboarding@resend.dev>",
 to: email,
-subject: `Voided Studios Application - ${status.toUpperCase()}`,
-text: `
-Hello ${name},
+subject: `Voided Studios Application - ${title}`,
 
-Your application has been ${status.toUpperCase()}.
+html: `
+<div style="font-family:Arial;background:#0b0b10;color:#ffffff;padding:25px;border-radius:10px;">
 
-Role: ${role}
+<h1 style="color:#7c3aed;">Voided Studios</h1>
 
-Thank you for applying to Voided Studios!
-- Voided Studios Team
+<p>Hello <b>${name}</b>,</p>
+
+<p>Your application status is now:</p>
+
+<h2 style="color:${color};letter-spacing:1px;">
+${title}
+</h2>
+
+<hr style="border:1px solid #222;" />
+
+<p><b>Role Applied For:</b> ${role}</p>
+
+<br/>
+
+<div style="background:#111;padding:15px;border-radius:8px;">
+Thank you for applying to Voided Studios.<br/>
+We appreciate your interest in joining the team.
+</div>
+
+<br/>
+
+<p style="font-size:12px;color:#888;">
+Voided Studios Recruitment System
+</p>
+
+</div>
 `
 });
 
@@ -58,5 +90,5 @@ return res.json({ success: false, error: err.message });
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-console.log(`Server running on port ${PORT}`);
+console.log(`Voided backend running on port ${PORT}`);
 });
