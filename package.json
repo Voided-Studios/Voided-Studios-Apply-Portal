@@ -1,7 +1,6 @@
 {
-  "name": "voided-studios-backend",
+  "name": "voided-backend",
   "version": "1.0.0",
-  "description": "AI application backend for Voided Studios",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -9,6 +8,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "resend": "^3.0.0"
   }
 }
