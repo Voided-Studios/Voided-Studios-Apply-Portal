@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Voided Studios Apply Portal</title>
+<title>Voided Studios Application Portal</title>
 
 <style>
 body{
@@ -80,17 +80,16 @@ margin-bottom:10px;
 <div class="left">
 <div class="card">
 
-<h3>Apply</h3>
+<h3>Apply to Voided Studios</h3>
 
 <input id="roblox" placeholder="Roblox Username">
 <input id="realname" placeholder="Real Name">
 <input id="discord" placeholder="Discord Username">
-<input id="xname" placeholder="X Username">
-<input id="email" placeholder="Email">
+<input id="xname" placeholder="X Username (Twitter)">
+<input id="email" placeholder="Email Address">
 
 <select id="role">
 
-<!-- ENGINEERING -->
 <option>Frontend Developer</option>
 <option>Backend Developer</option>
 <option>Full Stack Developer</option>
@@ -105,14 +104,12 @@ margin-bottom:10px;
 <option>Database Engineer</option>
 <option>Infrastructure Engineer</option>
 
-<!-- ROBLOX / GAME DEV -->
 <option>Roblox Scripter</option>
+<option>Roblox Gameplay Developer</option>
 <option>Roblox Systems Engineer</option>
 <option>Roblox UI Scripter</option>
-<option>Roblox Gameplay Developer</option>
-<option>Roblox Optimisation Engineer</option>
+<option>Roblox Optimization Engineer</option>
 
-<!-- ART / DESIGN -->
 <option>UI/UX Designer</option>
 <option>UI Developer</option>
 <option>2D Artist</option>
@@ -125,25 +122,21 @@ margin-bottom:10px;
 <option>Concept Artist</option>
 <option>Graphic Designer</option>
 
-<!-- WORLD / LEVEL DESIGN -->
 <option>Level Designer</option>
 <option>Map Developer</option>
 <option>World Builder</option>
 <option>Environment Designer</option>
 
-<!-- AUDIO -->
 <option>Sound Designer</option>
 <option>Music Composer</option>
 <option>Audio Engineer</option>
 
-<!-- QUALITY / SUPPORT -->
 <option>QA Tester</option>
 <option>Bug Tester</option>
 <option>Community Moderator</option>
 <option>Discord Moderator</option>
 <option>Support Team</option>
 
-<!-- MANAGEMENT -->
 <option>Project Manager</option>
 <option>Product Manager</option>
 <option>Team Lead Developer</option>
@@ -152,7 +145,6 @@ margin-bottom:10px;
 <option>Development Director</option>
 <option>Executive Development Director</option>
 
-<!-- CONTRIBUTOR / OTHER -->
 <option>Contributor</option>
 <option>Intern Developer</option>
 <option>Trial Developer</option>
@@ -160,10 +152,10 @@ margin-bottom:10px;
 
 </select>
 
-<textarea id="reason" placeholder="Why join?"></textarea>
-<textarea id="extra" placeholder="What can you bring?"></textarea>
+<textarea id="reason" placeholder="Why do you want to join Voided Studios?"></textarea>
+<textarea id="extra" placeholder="What can you bring to the team?"></textarea>
 
-<button onclick="submitApp()">Submit</button>
+<button onclick="submitApp()">Submit Application</button>
 
 </div>
 </div>
@@ -194,15 +186,14 @@ updateDoc,
 doc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* 🔥 YOUR FIREBASE CONFIG */
+/* FIREBASE */
 const firebaseConfig = {
 apiKey: "AIzaSyCic_ne2ZWsYZeTFX-2fJPCcFXJlqzLEW4",
 authDomain: "voided-studios-apply-portal.firebaseapp.com",
 projectId: "voided-studios-apply-portal",
 storageBucket: "voided-studios-apply-portal.firebasestorage.app",
 messagingSenderId: "385790292991",
-appId: "1:385790292991:web:a4a10cb5781c107151adca",
-measurementId: "G-MXHQXY1HYX"
+appId: "1:385790292991:web:a4a10cb5781c107151adca"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -221,7 +212,21 @@ apps = snap.docs.map(d => ({id:d.id, ...d.data()}));
 render();
 });
 
-/* SUBMIT + AI TAG */
+/* AI BACKEND */
+async function getAITag(data){
+try{
+const res = await fetch("https://voided-studios-apply-portal.onrender.com/analyze", {
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(data)
+});
+return await res.json();
+}catch{
+return {tag:"Needs Review", score:5};
+}
+}
+
+/* SUBMIT */
 async function submitApp(){
 
 const data = {
@@ -234,7 +239,7 @@ role: role.value,
 reason: reason.value,
 extra: extra.value,
 time: new Date().toLocaleString(),
-status: "Pending"
+status:"Pending"
 };
 
 if(!data.roblox || !data.email || !data.reason){
@@ -242,17 +247,11 @@ alert("Fill required fields");
 return;
 }
 
-/* CALL BACKEND AI */
-const ai = await fetch("https://YOUR-RENDER-SERVICE.onrender.com/analyze", {
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-body: JSON.stringify(data)
-}).then(r=>r.json());
-
+const ai = await getAITag(data);
 data.aiTag = ai.tag;
 data.aiScore = ai.score;
 
-await addDoc(colRef, data);
+await addDoc(colRef,data);
 
 alert("Application submitted!");
 }
@@ -267,8 +266,8 @@ alert("Incorrect password");
 }
 }
 
-/* EMAIL TEMPLATE */
-function sendEmail(app, status){
+/* EMAIL */
+function sendEmail(app,status){
 
 const subject = `Voided Studios Application - ${status}`;
 
@@ -279,49 +278,44 @@ After reviewing your application, we have ${status.toUpperCase()} it.
 
 Role: ${app.role}
 
-Thank you for applying!
+Thank you!
 - Voided Studios Team`;
 
 window.location.href =
 `mailto:${app.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-/* STATUS UPDATE */
-async function setStatus(i, status){
-
+/* STATUS */
+async function setStatus(i,status){
 const a = apps[i];
-await updateDoc(doc(db,"applications",a.id), {status});
+await updateDoc(doc(db,"applications",a.id),{status});
 sendEmail(a,status);
 }
 
-/* UI */
+/* RENDER */
 function render(){
 
 if(!loggedIn){
-appsDiv.innerHTML = "<p class='small'>Admin locked</p>";
+appsDiv.innerHTML="<p class='small'>Admin locked</p>";
 return;
 }
 
 appsDiv.innerHTML = apps.map((a,i)=>`
 <div class="app">
-
 <div><b>${a.roblox}</b> (${a.realname})</div>
 <div>Role: ${a.role}</div>
-
 <div class="small">AI: ${a.aiTag} (${a.aiScore})</div>
-
 <div>Status: ${a.status}</div>
 
 <button onclick="setStatus(${i},'accepted')">Accept</button>
 <button onclick="setStatus(${i},'declined')">Decline</button>
-
 </div>
 `).join("");
 }
 
-window.submitApp = submitApp;
-window.login = login;
-window.setStatus = setStatus;
+window.submitApp=submitApp;
+window.login=login;
+window.setStatus=setStatus;
 
 </script>
 
