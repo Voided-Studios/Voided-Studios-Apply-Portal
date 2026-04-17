@@ -10,21 +10,37 @@ margin:0;
 font-family:monospace;
 background:#0b0b10;
 color:white;
+overflow:hidden;
 }
 
 header{
 padding:15px;
 border-bottom:1px solid #222;
+height:60px;
+box-sizing:border-box;
 }
 
 .container{
 display:grid;
-grid-template-columns:1fr 340px;
+grid-template-columns:1fr 360px;
 height:calc(100vh - 60px);
+overflow:hidden;
 }
 
-.left{padding:20px;overflow-y:auto;}
-.right{border-left:1px solid #222;padding:15px;overflow-y:auto;}
+.left{
+padding:20px;
+overflow-y:auto;
+height:100%;
+box-sizing:border-box;
+}
+
+.right{
+border-left:1px solid #222;
+padding:15px;
+overflow-y:auto;
+height:100%;
+box-sizing:border-box;
+}
 
 .card{
 background:#111;
@@ -41,6 +57,7 @@ border:1px solid #333;
 color:white;
 border-radius:6px;
 font-family:monospace;
+box-sizing:border-box;
 }
 
 textarea{
@@ -56,6 +73,7 @@ border-radius:6px;
 color:white;
 cursor:pointer;
 margin:5px 0;
+width:100%;
 }
 
 .app{
@@ -76,6 +94,21 @@ margin-bottom:10px;
 <h2>Voided Studios Application Portal</h2>
 </header>
 
+<div class="container">
+
+<!-- LEFT FORM -->
+<div class="left">
+<div class="card">
+
+<h3>Apply to Voided Studios</h3>
+
+<input id="roblox" placeholder="Roblox Username">
+<input id="realname" placeholder="Real Name">
+<input id="discord" placeholder="Discord Username">
+<input id="xname" placeholder="X Username (Twitter)">
+<input id="email" placeholder="Email Address">
+
+<!-- YOUR REQUIRED ROLE SYSTEM -->
 <select id="role">
 
 <!-- CORE ENGINEERING -->
@@ -307,8 +340,8 @@ alert("Incorrect password");
 }
 }
 
-/* FIXED EMAIL (THIS IS THE IMPORTANT PART) */
-function sendEmail(appData, status){
+/* EMAIL */
+function sendEmail(appData,status){
 
 const subject = `Voided Studios Application - ${status}`;
 
@@ -322,30 +355,22 @@ Role: ${appData.role}
 Thank you!
 - Voided Studios Team`;
 
-/* IMPORTANT: direct user action trigger */
 window.location.href =
 `mailto:${appData.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-/* STATUS CHANGE (FIXED EMAIL TRIGGER) */
-async function setStatus(i, status){
-
+/* STATUS */
+async function setStatus(i,status){
 const a = apps[i];
-
-await updateDoc(doc(db,"applications",a.id), {status});
-
-/* delay prevents browser blocking mailto */
-setTimeout(()=>{
+await updateDoc(doc(db,"applications",a.id),{status});
 sendEmail(a,status);
-},50);
-
 }
 
 /* RENDER */
 function render(){
 
 if(!loggedIn){
-appsDiv.innerHTML = "<p class='small'>Admin locked</p>";
+appsDiv.innerHTML="<p class='small'>Admin locked</p>";
 return;
 }
 
@@ -362,9 +387,9 @@ appsDiv.innerHTML = apps.map((a,i)=>`
 `).join("");
 }
 
-window.submitApp = submitApp;
-window.login = login;
-window.setStatus = setStatus;
+window.submitApp=submitApp;
+window.login=login;
+window.setStatus=setStatus;
 
 </script>
 
