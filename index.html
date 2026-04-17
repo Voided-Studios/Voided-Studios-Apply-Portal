@@ -23,10 +23,8 @@ grid-template-columns:1fr 340px;
 height:calc(100vh - 60px);
 }
 
-.left{
-padding:20px;
-overflow-y:auto;
-}
+.left{padding:20px;overflow-y:auto;}
+.right{border-left:1px solid #222;padding:15px;overflow-y:auto;}
 
 .card{
 background:#111;
@@ -45,10 +43,7 @@ border-radius:6px;
 font-family:monospace;
 }
 
-textarea{
-height:120px;
-resize:none;
-}
+textarea{height:120px;resize:none;}
 
 button{
 background:#7c3aed;
@@ -58,12 +53,6 @@ border-radius:6px;
 color:white;
 cursor:pointer;
 margin:5px 0;
-}
-
-.right{
-border-left:1px solid #222;
-padding:15px;
-overflow-y:auto;
 }
 
 .app{
@@ -91,13 +80,13 @@ margin-bottom:10px;
 <div class="left">
 <div class="card">
 
-<h3>Apply to Voided Studios</h3>
+<h3>Apply</h3>
 
 <input id="roblox" placeholder="Roblox Username">
 <input id="realname" placeholder="Real Name">
 <input id="discord" placeholder="Discord Username">
-<input id="xname" placeholder="X Username (Twitter)">
-<input id="email" placeholder="Email Address">
+<input id="xname" placeholder="X Username">
+<input id="email" placeholder="Email">
 
 <select id="role">
 <option>Frontend Developer</option>
@@ -107,33 +96,19 @@ margin-bottom:10px;
 <option>Roblox Scripter</option>
 <option>UI/UX Developer</option>
 <option>Systems Programmer</option>
-<option>Tools Programmer</option>
-<option>Gameplay Programmer</option>
 <option>AI Engineer</option>
 <option>DevOps Engineer</option>
-<option>Network Engineer</option>
-<option>Security Engineer</option>
 <option>QA Tester</option>
-<option>Technical Artist</option>
-
-<option>Lead Developer</option>
-<option>Senior Developer</option>
-<option>Junior Developer</option>
-
-<option>Artist</option>
 <option>Modeler</option>
-<option>Map Developer</option>
-
+<option>Artist</option>
 <option>Moderator</option>
 <option>Administrator</option>
-
-<option>Development Director</option>
 </select>
 
-<textarea id="reason" placeholder="Why do you want to join Voided Studios?"></textarea>
-<textarea id="extra" placeholder="What can you bring to the team?"></textarea>
+<textarea id="reason" placeholder="Why join?"></textarea>
+<textarea id="extra" placeholder="What can you bring?"></textarea>
 
-<button onclick="submitApp()">Submit Application</button>
+<button onclick="submitApp()">Submit</button>
 
 </div>
 </div>
@@ -171,7 +146,8 @@ authDomain: "voided-studios-apply-portal.firebaseapp.com",
 projectId: "voided-studios-apply-portal",
 storageBucket: "voided-studios-apply-portal.firebasestorage.app",
 messagingSenderId: "385790292991",
-appId: "1:385790292991:web:a4a10cb5781c107151adca"
+appId: "1:385790292991:web:a4a10cb5781c107151adca",
+measurementId: "G-MXHQXY1HYX"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -184,13 +160,13 @@ let apps = [];
 
 const appsDiv = document.getElementById("apps");
 
-/* LOAD LIVE DATA */
+/* LIVE DATA */
 onSnapshot(colRef, (snap)=>{
 apps = snap.docs.map(d => ({id:d.id, ...d.data()}));
 render();
 });
 
-/* SUBMIT */
+/* SUBMIT + AI TAG */
 async function submitApp(){
 
 const data = {
@@ -211,6 +187,16 @@ alert("Fill required fields");
 return;
 }
 
+/* CALL BACKEND AI */
+const ai = await fetch("https://YOUR-RENDER-SERVICE.onrender.com/analyze", {
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify(data)
+}).then(r=>r.json());
+
+data.aiTag = ai.tag;
+data.aiScore = ai.score;
+
 await addDoc(colRef, data);
 
 alert("Application submitted!");
@@ -226,7 +212,7 @@ alert("Incorrect password");
 }
 }
 
-/* EMAIL SYSTEM (RESTORED) */
+/* EMAIL TEMPLATE */
 function sendEmail(app, status){
 
 const subject = `Voided Studios Application - ${status}`;
@@ -238,50 +224,38 @@ After reviewing your application, we have ${status.toUpperCase()} it.
 
 Role: ${app.role}
 
-Thank you for applying to Voided Studios!
-- Voided Studios Application Team`;
+Thank you for applying!
+- Voided Studios Team`;
 
 window.location.href =
 `mailto:${app.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-/* STATUS CHANGE */
+/* STATUS UPDATE */
 async function setStatus(i, status){
 
-const appData = apps[i];
-const ref = doc(db, "applications", appData.id);
-
-await updateDoc(ref, { status });
-
-sendEmail(appData, status);
+const a = apps[i];
+await updateDoc(doc(db,"applications",a.id), {status});
+sendEmail(a,status);
 }
 
-/* RENDER */
+/* UI */
 function render(){
 
 if(!loggedIn){
-appsDiv.innerHTML = "<p class='small'>Admin locked.</p>";
-return;
-}
-
-if(apps.length === 0){
-appsDiv.innerHTML = "<p>No applications yet.</p>";
+appsDiv.innerHTML = "<p class='small'>Admin locked</p>";
 return;
 }
 
 appsDiv.innerHTML = apps.map((a,i)=>`
 <div class="app">
 
-<div class="row"><b>${a.roblox}</b> (${a.realname})</div>
-<div class="row">Role: ${a.role}</div>
-<div class="row">Discord: ${a.discord}</div>
-<div class="row">X: ${a.x}</div>
-<div class="row">${a.email}</div>
+<div><b>${a.roblox}</b> (${a.realname})</div>
+<div>Role: ${a.role}</div>
 
-<div class="row">${a.reason}</div>
-<div class="row small">${a.time}</div>
+<div class="small">AI: ${a.aiTag} (${a.aiScore})</div>
 
-<div class="row"><b>Status:</b> ${a.status}</div>
+<div>Status: ${a.status}</div>
 
 <button onclick="setStatus(${i},'accepted')">Accept</button>
 <button onclick="setStatus(${i},'declined')">Decline</button>
