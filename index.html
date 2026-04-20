@@ -8,36 +8,30 @@
 body{
 margin:0;
 font-family:monospace;
-background:#0b0b10;
+background:radial-gradient(circle at top,#111,#050507);
 color:white;
 }
 
 header{
 padding:15px;
+text-align:center;
 border-bottom:1px solid #222;
+letter-spacing:2px;
 }
 
 .container{
-display:grid;
-grid-template-columns:1fr 340px;
-height:calc(100vh - 60px);
-}
-
-.left{
-padding:20px;
-overflow-y:auto;
-}
-
-.right{
-border-left:1px solid #222;
-padding:15px;
-overflow-y:auto;
+display:flex;
+justify-content:center;
+padding:40px;
 }
 
 .card{
-background:#111;
-padding:15px;
-border-radius:10px;
+background:#0f0f14;
+border:1px solid #222;
+padding:20px;
+border-radius:12px;
+width:520px;
+box-shadow:0 0 25px rgba(124,58,237,0.15);
 }
 
 input,select,textarea{
@@ -52,35 +46,23 @@ font-family:monospace;
 }
 
 textarea{
-height:120px;
+height:110px;
 resize:none;
 }
 
 button{
+width:100%;
+padding:12px;
+margin-top:10px;
 background:#7c3aed;
 border:none;
-padding:10px 14px;
-border-radius:6px;
+border-radius:8px;
 color:white;
 cursor:pointer;
-margin:5px 0;
 }
 
-.app{
-background:#0f0f14;
-border:1px solid #222;
-padding:10px;
-border-radius:8px;
-margin-bottom:10px;
-}
-
-.small{
-font-size:12px;
-color:#888;
-}
-
-.row{
-margin:4px 0;
+button:hover{
+background:#6d28d9;
 }
 </style>
 </head>
@@ -88,16 +70,11 @@ margin:4px 0;
 <body>
 
 <header>
-<h2>Voided Studios Application Portal</h2>
+<h2>VOIDED STUDIOS // APPLICATION PORTAL</h2>
 </header>
 
 <div class="container">
-
-<!-- LEFT FORM -->
-<div class="left">
-
 <div class="card">
-<h3>Apply to Voided Studios</h3>
 
 <input id="roblox" placeholder="Roblox Username">
 <input id="realname" placeholder="Real Name">
@@ -155,7 +132,7 @@ margin:4px 0;
 <option>Sound Designer</option>
 <option>Music Composer</option>
 
-<!-- QA -->
+<!-- QA / COMMUNITY -->
 <option>QA Tester</option>
 <option>Community Manager</option>
 
@@ -171,21 +148,6 @@ margin:4px 0;
 <button onclick="submitApp()">Submit Application</button>
 
 </div>
-
-</div>
-
-<!-- RIGHT ADMIN -->
-<div class="right">
-
-<h3>Admin Panel</h3>
-
-<input id="pass" type="password" placeholder="Admin Password">
-<button onclick="login()">Login</button>
-
-<div id="apps"></div>
-
-</div>
-
 </div>
 
 <script type="module">
@@ -194,42 +156,22 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/fireba
 import {
 getFirestore,
 collection,
-addDoc,
-onSnapshot,
-updateDoc,
-doc
+addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* FIREBASE */
 const firebaseConfig = {
 apiKey: "AIzaSyCic_ne2ZWsYZeTFX-2fJPCcFXJlqzLEW4",
 authDomain: "voided-studios-apply-portal.firebaseapp.com",
-projectId: "voided-studios-apply-portal",
-storageBucket: "voided-studios-apply-portal.firebasestorage.app",
-messagingSenderId: "385790292991",
-appId: "1:385790292991:web:a4a10cb5781c107151adca"
+projectId: "voided-studios-apply-portal"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const colRef = collection(db, "applications");
+const col = collection(db,"applications");
 
-const PASSWORD = "VoidedStudios.Agent";
-let loggedIn = false;
-let apps = [];
-
-const appsDiv = document.getElementById("apps");
-
-/* LIVE DATA */
-onSnapshot(colRef, (snap)=>{
-apps = snap.docs.map(d => ({id:d.id, ...d.data()}));
-render();
-});
-
-/* SUBMIT */
 async function submitApp(){
 
-const data = {
+await addDoc(col,{
 roblox: roblox.value,
 realname: realname.value,
 discord: discord.value,
@@ -238,76 +180,13 @@ email: email.value,
 role: role.value,
 reason: reason.value,
 extra: extra.value,
-time: new Date().toLocaleString(),
-status:"Pending"
-};
+status:"Pending",
+time: new Date().toLocaleString()
+});
 
-await addDoc(colRef, data);
-
-alert("Submitted!");
+alert("Application sent to Voided Studios.");
 }
 
-/* LOGIN */
-function login(){
-if(pass.value === PASSWORD){
-loggedIn = true;
-render();
-}else{
-alert("Wrong password");
-}
-}
-
-/* MAILTO EMAIL TEMPLATE */
-function sendEmail(app){
-
-const subject = `Voided Studios Application`;
-
-const body =
-`Hello ${app.realname},
-
-After careful review of your application, we have ${app.status.toLowerCase()} it.
-
-Thank you for applying to Voided Studios.
-
-- Voided Studios Recruitment Team`;
-
-window.location.href =
-`mailto:${app.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-/* STATUS */
-async function setStatus(i,status){
-
-apps[i].status = status;
-await updateDoc(doc(db,"applications",apps[i].id),{status});
-
-sendEmail(apps[i]);
-
-}
-
-/* RENDER */
-function render(){
-
-if(!loggedIn){
-appsDiv.innerHTML = "<p class='small'>Admin locked</p>";
-return;
-}
-
-appsDiv.innerHTML = apps.map((a,i)=>`
-<div class="app">
-<div><b>${a.roblox}</b> (${a.realname})</div>
-<div>Role: ${a.role}</div>
-<div>Status: ${a.status}</div>
-
-<button onclick="setStatus(${i},'accepted')">Accept</button>
-<button onclick="setStatus(${i},'declined')">Decline</button>
-</div>
-`).join("");
-}
-
-/* GLOBAL FIX */
-window.login = login;
-window.setStatus = setStatus;
 window.submitApp = submitApp;
 
 </script>
