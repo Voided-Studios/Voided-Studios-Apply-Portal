@@ -8,7 +8,7 @@
 body{
 margin:0;
 font-family:monospace;
-background:radial-gradient(circle at top,#111,#050507);
+background:#0b0b10;
 color:white;
 }
 
@@ -16,22 +16,20 @@ header{
 padding:15px;
 text-align:center;
 border-bottom:1px solid #222;
-letter-spacing:2px;
 }
 
 .container{
 display:flex;
 justify-content:center;
-padding:40px;
+padding:30px;
 }
 
 .card{
-background:#0f0f14;
+width:560px;
+background:#111;
+padding:15px;
+border-radius:10px;
 border:1px solid #222;
-padding:20px;
-border-radius:12px;
-width:520px;
-box-shadow:0 0 25px rgba(124,58,237,0.15);
 }
 
 input,select,textarea{
@@ -46,23 +44,19 @@ font-family:monospace;
 }
 
 textarea{
-height:110px;
+height:120px;
 resize:none;
 }
 
 button{
-width:100%;
-padding:12px;
-margin-top:10px;
 background:#7c3aed;
 border:none;
-border-radius:8px;
+padding:12px;
+border-radius:6px;
 color:white;
 cursor:pointer;
-}
-
-button:hover{
-background:#6d28d9;
+width:100%;
+margin-top:10px;
 }
 </style>
 </head>
@@ -70,10 +64,11 @@ background:#6d28d9;
 <body>
 
 <header>
-<h2>VOIDED STUDIOS // APPLICATION PORTAL</h2>
+<h2>VOIDED STUDIOS APPLICATION PORTAL</h2>
 </header>
 
 <div class="container">
+
 <div class="card">
 
 <input id="roblox" placeholder="Roblox Username">
@@ -107,7 +102,7 @@ background:#6d28d9;
 <option>Performance Engineer</option>
 <option>Automation Engineer</option>
 
-<!-- ROBLOX -->
+<!-- ROBLOX DEV -->
 <option>Roblox Scripter</option>
 <option>Roblox Gameplay Developer</option>
 <option>Roblox Systems Engineer</option>
@@ -136,6 +131,23 @@ background:#6d28d9;
 <option>QA Tester</option>
 <option>Community Manager</option>
 
+<!-- STAFF / MODERATION -->
+<option>Staff Member</option>
+<option>Junior Moderator</option>
+<option>Moderator</option>
+<option>Senior Moderator</option>
+<option>Head Moderator</option>
+
+<!-- ADMINISTRATION -->
+<option>Administrator</option>
+<option>Senior Administrator</option>
+<option>Head Administrator</option>
+
+<!-- MANAGEMENT -->
+<option>Manager</option>
+<option>Operations Manager</option>
+<option>Project Manager</option>
+
 <!-- LEADERSHIP -->
 <option>Development Director</option>
 <option>Executive Development Director</option>
@@ -148,6 +160,7 @@ background:#6d28d9;
 <button onclick="submitApp()">Submit Application</button>
 
 </div>
+
 </div>
 
 <script type="module">
@@ -159,35 +172,38 @@ collection,
 addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+/* FIREBASE */
 const firebaseConfig = {
 apiKey: "AIzaSyCic_ne2ZWsYZeTFX-2fJPCcFXJlqzLEW4",
 authDomain: "voided-studios-apply-portal.firebaseapp.com",
-projectId: "voided-studios-apply-portal"
+projectId: "voided-studios-apply-portal",
+storageBucket: "voided-studios-apply-portal.firebasestorage.app",
+messagingSenderId: "385790292991",
+appId: "1:385790292991:web:a4a10cb5781c107151adca"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const col = collection(db,"applications");
+const colRef = collection(db,"applications");
 
-async function submitApp(){
+/* SUBMIT */
+window.submitApp = async function(){
 
-await addDoc(col,{
-roblox: roblox.value,
-realname: realname.value,
-discord: discord.value,
-x: xname.value,
-email: email.value,
-role: role.value,
-reason: reason.value,
-extra: extra.value,
-status:"Pending",
+await addDoc(colRef,{
+roblox: roblox.value || "N/A",
+realname: realname.value || "N/A",
+discord: discord.value || "N/A",
+x: xname.value || "N/A",
+email: email.value || "N/A",
+role: role.value || "N/A",
+reason: reason.value || "N/A",
+extra: extra.value || "N/A",
+status: "Pending",
 time: new Date().toLocaleString()
 });
 
-alert("Application sent to Voided Studios.");
-}
-
-window.submitApp = submitApp;
+alert("Application Sent!");
+};
 
 </script>
 
